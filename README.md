@@ -29,4 +29,8 @@
 5. 项目说明
  本人为首次开发此类平衡车项目，代码和硬件实现仍有优化空间，欢迎各位开发者 / 大佬提出指教和改进建议。
 
+6.下面是我平衡车的展示
+https://www.bilibili.com/video/BV1iE6GBFErF?buvid=XU0B0550DD42BB456B98CEB3E250CDE28A135&from_spmid=dt.space-dt.video.0&is_story_h5=false&mid=H5jIrBzya46VvB4E2OzdGg%3D%3D&plat_id=116&share_from=ugc&share_medium=android&share_plat=android&share_session_id=9bf5ef0f-e17e-4ffe-a187-2a5905ccbaa6&share_source=WEIXIN&share_tag=s_i&spmid=united.player-video-detail.0.0&timestamp=1769528171&unique_k=YNPF1FN&up_id=698438521
+
+7.我会在我CSDN中更新对应的笔记和遇到的bug，感兴趣的可以关注一下：爱吃葱的羊  用户id是2401_86599913
 
