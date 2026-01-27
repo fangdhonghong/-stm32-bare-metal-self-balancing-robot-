@@ -1,4 +1,5 @@
 #include "dwt_delay.h"
+// DWT定时器，主要是用于给超声波模块提供us级延时
 
 // 用于保存每微秒的 CPU 周期数
 static uint32_t cycles_per_us = 0;

@@ -3,18 +3,18 @@
         {
             "name": "Rider_hal",
             "includePath": [
-                "e:\\ stm32-bare-metal-self-balancing-robot \\Project\\Core\\Inc",
-                "e:\\ stm32-bare-metal-self-balancing-robot \\Project\\Drivers\\STM32F1xx_HAL_Driver\\Inc",
-                "e:\\ stm32-bare-metal-self-balancing-robot \\Project\\Drivers\\STM32F1xx_HAL_Driver\\Inc\\Legacy",
-                "e:\\ stm32-bare-metal-self-balancing-robot \\Project\\Drivers\\CMSIS\\Device\\ST\\STM32F1xx\\Include",
-                "e:\\ stm32-bare-metal-self-balancing-robot \\Project\\Drivers\\CMSIS\\Include",
+                "e:\\STM32_rider\\Project\\Core\\Inc",
+                "e:\\STM32_rider\\Project\\Drivers\\STM32F1xx_HAL_Driver\\Inc",
+                "e:\\STM32_rider\\Project\\Drivers\\STM32F1xx_HAL_Driver\\Inc\\Legacy",
+                "e:\\STM32_rider\\Project\\Drivers\\CMSIS\\Device\\ST\\STM32F1xx\\Include",
+                "e:\\STM32_rider\\Project\\Drivers\\CMSIS\\Include",
                 "C:\\Keil\\ARM\\ARMCLANG\\include",
                 "C:\\Keil\\ARM\\ARMCLANG\\include\\arm_linux",
                 "C:\\Keil\\ARM\\ARMCLANG\\include\\arm_linux_compat",
                 "C:\\Keil\\ARM\\ARMCLANG\\include\\libcxx",
-                "e:\\ stm32-bare-metal-self-balancing-robot \\Project\\MDK-ARM",
-                "e:\\ stm32-bare-metal-self-balancing-robot \\Project\\Core\\Src",
-                "e:\\ stm32-bare-metal-self-balancing-robot \\Project\\Drivers\\STM32F1xx_HAL_Driver\\Src"
+                "e:\\STM32_rider\\Project\\MDK-ARM",
+                "e:\\STM32_rider\\Project\\Core\\Src",
+                "e:\\STM32_rider\\Project\\Drivers\\STM32F1xx_HAL_Driver\\Src"
             ],
             "defines": [
                 "USE_HAL_DRIVER",
