@@ -1,4 +1,5 @@
 #include "BluetoothControl.h"
+#include <stdlib.h>
 #include <math.h>
 
 Joystick_TypeDef Rocker; // 声明一个结构体变量
@@ -25,7 +26,7 @@ void Bluetooth_Parse_Binary(uint8_t *data)
             static float speed_lpf = 0.0f; // 速度低通滤波变量
             float speed_temp = 0;
 
-            if (fabs(Rocker.speed) < 5)
+            if (abs(Rocker.speed) < 5)
             {
                 speed_temp = 0;
             } else {
@@ -37,7 +38,7 @@ void Bluetooth_Parse_Binary(uint8_t *data)
             target_speed = -1 * speed_lpf;
 
             // 5. 处理转向 (turn_cmd)
-            if (fabs(Rocker.turn) < 5) {
+            if (abs(Rocker.turn) < 5) {
                 turn_cmd = 0;
             } else {
                 turn_cmd = -1 * Rocker.turn;

@@ -6,10 +6,10 @@ extern TIM_HandleTypeDef htim1;
 #define PWM_MAX_LIMIT 7200
 
 // 死区宏定义  
-#define L_DEAD_BACK  224  // 左轮反向死区 320
-#define L_DEAD_FOR   266  // 左轮正向死区 380
-#define R_DEAD_BACK  290  // 右轮反向死区 415
-#define R_DEAD_FOR   217  // 右轮正向死区 310
+#define L_DEAD_BACK  64  // 左轮反向死区 320
+#define L_DEAD_FOR   76  // 左轮正向死区 380
+#define R_DEAD_BACK  83  // 右轮反向死区 415
+#define R_DEAD_FOR   62  // 右轮正向死区 310
 /**
  * @description: 线性死区补偿映射函数
  * @param input:  原始速度 (-7200 到 7200)

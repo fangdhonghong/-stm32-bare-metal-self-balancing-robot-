@@ -23,13 +23,13 @@ volatile int turn_cmd = 0;   // 转向指令
 void PID_Init(void)
 {
     // 初始化直立环初始
-    UprightRing.Kp = -450.0f; // 极性为-  -450.0f
-    UprightRing.Kd = -7.0f; // 极性为-   -7.0f
-    mechanical_balance_angle = 0.3f;
+    UprightRing.Kp = -580.0f; // 极性为-  -580f
+    UprightRing.Kd = -3.95f; // 极性为-   -3.95f
+    mechanical_balance_angle = 1.9f;
 
     // 初始化速度环
-    SpeedRing.Kp = -0.1f;  // 极性为-    -0.1f
-    SpeedRing.Ki = -0.0003f;  // 极性为-  -0.0003f
+    SpeedRing.Kp = -0.05f;  // 极性为-    -0.05f
+    SpeedRing.Ki = -0.00004f;  // 极性为-  -0.00004f
 
     // 初始化转向环
     TurnRing.Kp = -19.0f;  // 极性为-  -19f
@@ -99,7 +99,7 @@ float Speed_Control(int enc_left, int enc_right, float current_angle)
     float p_out = SpeedRing.Kp * speed_error;
 
     // B.定义速度环输出的最大倾角
-    const float max_target_angle = 10.0f;
+    const float max_target_angle = 18.0f;
 
     // C.试探性的累加积分
     float next_integral = speed_integral + speed_error;

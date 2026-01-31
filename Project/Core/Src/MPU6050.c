@@ -315,7 +315,7 @@ void MPU6050_Get_AccelAngle(void)
 }
 
 
-/*================================== 根据角速度求的角度 ==================================*/
+/*================================== 上电自校准 ==================================*/
 
 volatile float gyro_x_offset = 0; // X轴零偏（直立环用）
 volatile float gyro_z_offset = 0; // Z轴零偏（转向环用）
@@ -348,60 +348,67 @@ void MPU6050_Calibrate_Gyro(void)
     gyro_z_offset = (float)sum_gz / sample_count;
 }
 
-// 定义一个全局变量或静态结构体来保存当前角度，因为陀螺仪计算的是相对变化量
-volatile float gyro_angle = 0; // X轴角度
+/*================================== 卡尔曼滤波 ==================================*/
+
+// 初始化参数
+Kalman_t KalmanX = {
+    .Q_angle = 0.001f,
+    .Q_gyro  = 0.003f,
+    .R_angle = 0.5f,
+    .angle   = 0.0f,
+    .bias    = 0.0f,
+    .P = {{1, 0}, {0, 1}}
+};
 
 
-// 根据角速度求的角度
-void MPU6050_Get_GyroAngle(float dt)
-{
-    short gx, gy, gz;
+/**
+ * @description: 卡尔曼滤波函数
+ * @param {Kalman_t} *k 卡尔曼滤波器结构体指
+ * @param {float} newAngle 新的角度测量值
+ * @param {float} newGyro 新的陀螺仪角速度测量值
+ * @param {float} dt 时间间隔
+ * @return {float} 滤波后的角度值
+ */
+float Kalman_Filter(Kalman_t *k, float newAngle, float newGyro, float dt) {
+    // 1.根据陀螺仪猜当前角度：角度 = 旧角度 + (角速度 - 零偏) * 时间
+    k->angle += dt * (newGyro - k->bias);
+
+    // 看看我这次猜得准不准，P 越大 → 说明我对自己的预测越不自信
+    k->P[0][0] += dt * (dt * k->P[1][1] - k->P[0][1] - k->P[1][0] + k->Q_angle);
+    k->P[0][1] -= dt * k->P[1][1];
+    k->P[1][0] -= dt * k->P[1][1];
+    // 陀螺零偏是会慢慢漂移的，因此给 bias 加入过程噪声 Q_gyro
+    k->P[1][1] += k->Q_gyro * dt;
     
-    // 1. 获取原始数据
-    MPU6050_Get_Gyro(&gx, &gy, &gz);
+    // 3.看看该信谁多一点
+    float S = k->P[0][0] + k->R_angle;
+    float K[2];
+    K[0] = k->P[0][0] / S;
+    K[1] = k->P[1][0] / S;
 
-    // 2. 转换为实际角速度 (度/秒)
-    // 注意强制类型转换，或者除以 16.4f
-    float gyro_x_speed = (gx - gyro_x_offset) / 16.4f;
+    // 4.用加速度计获取的实时角度看看我猜错了多少
+    float y = newAngle - k->angle;  // 加速度计测得的角度 - 刚刚用陀螺猜的角度
 
-    // 3. 积分：当前角度 = 上次角度 + (角速度 * 时间)
-    // 注意：这里需要处理一下零点漂移（静止时可能有微小的输出），简易版先忽略
-    
-    // 如果数值太小（比如在静止时的噪声），可以强制归零，这叫死区处理
-    if(fabs(gyro_x_speed) < 0.3f) gyro_x_speed = 0;  
+    // 5.根据猜错的值来修正我的猜测
+    k->angle += K[0] * y;
+    k->bias  += K[1] * y;
 
-    gyro_angle += gyro_x_speed * dt; 
+    // 5.看看我的不自信程度降低了多少
+    float P00_temp = k->P[0][0];
+    float P01_temp = k->P[0][1];
+    k->P[0][0] -= K[0] * P00_temp;
+    k->P[0][1] -= K[0] * P01_temp;
+    k->P[1][0] -= K[1] * P00_temp;
+    k->P[1][1] -= K[1] * P01_temp;
+
+    // 返回滤波后的角度
+    return k->angle;
 }
 
-
-/*================== 加速度计获取角度 + 陀螺仪获取角度 + 滤波 ==================*/
-/*========================= ||     ||     ||     || ==========================*/
-/*================================= 互补滤波 =================================*/
-
-volatile float fused_angle = 0; // 融合后的角度
-
-void MPU6050_Get_FusedAngle(float dt)
-{
-    short gx, gy, gz;
-    
-    // 1. 获取加速度计计算出的角度 
-    MPU6050_Get_AccelAngle();  // 直接测量结果
-
-    // 2. 获取角速度原始数据并扣除零偏，转换为 度/秒
-    MPU6050_Get_Gyro(&gx, &gy, &gz);
-    float gyro_x_speed = (gx - gyro_x_offset) / 16.4f;
-
-    // 3. 互补滤波核心公式
-    // 最终值 = 0.98 * (旧值 + 变化量) + 0.02 * (稳定参考值)
-    // 其中变化值就是原始数据的积分，稳定参考值就是直接测量结果，旧值就是上一次测量结果（本身）
-    fused_angle = 0.98f * (fused_angle + gyro_x_speed * dt) + 0.02f * accel_angle;
-}
-
-
-/*==================================== 融合 ====================================*/
-/*========================== ||     ||     ||     || ===========================*/
 /*================================== 姿态解算 ==================================*/
 
+volatile float gyro_angle = 0; // X轴角度
+volatile float fused_angle = 0; // 融合后的角度
 float gyro_x_speed;  // x轴角速度(直立环需要)
 float gyro_z_speed;  // Z轴角速度（转向环用）
 
@@ -425,11 +432,11 @@ void MPU6050_get_FusedAngle_Optimized(float dt)
     gz = ((uint16_t)buff[12] << 8) | buff[13];
 
     // 加速度计获取的角度（直接测量值）
-    accel_angle_local = atan2((float)ay, (float)az) * 180.0f / PI - 1.5f;
+    accel_angle_local = atan2((float)ay, (float)az) * 180.0f / PI;
     // 陀螺仪获取的X轴角速度（动态变化量）
     gyro_x_speed = (gx - gyro_x_offset) / 16.4f;
     // 陀螺仪获取的Z轴角速度
     gyro_z_speed = (gz - gyro_z_offset) / 16.4f;
-    // 互补滤波
-    fused_angle = 0.98f * (fused_angle + gyro_x_speed * dt) + 0.02f * accel_angle_local;
+    // 卡尔曼滤波
+    fused_angle = Kalman_Filter(&KalmanX, accel_angle_local, gyro_x_speed, dt);
 }

@@ -13,8 +13,6 @@ typedef struct __packed  //  __packed 告诉编译器：别乱动，字节给我
     float Reality_angle;    // 现实角度
     float expect_angle;     // 期望角度
     float PWM_output_value; // PWM输出值
-    float Encoder_Velocity; // 当前速度
-    float Filtered_Velocity; // 经过滤波后的速度
 
     // --- 帧尾段 ---
     uint32_t tail;          // 必须放在最后，用于存储 0x7F800000

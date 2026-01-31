@@ -76,6 +76,7 @@ extern uint32_t last_heartbeat_tick; // 上次心跳时间戳
 
 #define CONTROL_TIMEOUT 500 // 控制指令超时时间，单位：毫秒
 
+// uint8_t isvofa = 0;
 
 /* USER CODE END PTD */
 
@@ -201,13 +202,21 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   char buf[20]; // 缓冲区，用于存放格式化后的字符串
-  /*====================== 时间戳初始化 ======================*/  
+  /*====================== 时间戳初始化 ======================*/ 
   uint32_t last_60mstime = HAL_GetTick();   // 一级时间戳
   uint32_t last_500mstime = HAL_GetTick();  // 二级时间戳
   HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
   while (1)
   {
     uint32_t now = HAL_GetTick();
+
+    // if (isvofa == 1)
+    // {
+    //   g_vofa_frame.Reality_angle = fused_angle;
+    //   g_vofa_frame.expect_angle = mechanical_balance_angle;
+    //   VOFA_SendDta();
+    //   isvofa = 0;
+    // }
 
     /*====================== 优先级1：超声波 ======================*/
     if (now - last_60mstime >= 60)
@@ -253,12 +262,6 @@ int main(void)
       }
     }     
 
-    // if (now - last_500mstime >= 5)
-    // {
-    //   last_500mstime = now;
-    //   VOFA_SendDta();
-    // }
-
     /*====================== 避障逻辑 ======================*/
     if (isFinish == 1)
     {
@@ -272,6 +275,8 @@ int main(void)
     if (IsParse == 1)
     {
       IsParse = 0;
+      // VOFA_Parse_Command((char *)Process_buffer);  // 解析VOFA+数据包
+      // HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
       Bluetooth_Parse_Binary((uint8_t *)Process_buffer);  // 解析蓝牙数据包
     }
 
@@ -362,13 +367,15 @@ void HAL_SYSTICK_Callback(void)
   {
     /*=================== 姿态解算 ===================*/
     MPU6050_get_FusedAngle_Optimized(0.005f);
+    // isvofa = 1;
     
     if (fabs(fused_angle) > 40.0f)        IsFall = 1;
     else if (fabs(fused_angle) < 5.0f)    IsFall = 0;
 
     /*=================== 直立环PD控制器 ===================*/
-    int Upright_pwm = Upright_Control(fused_angle, gyro_x_speed, target_angle_from_speed);
-
+    float pure_gyro_x_speed = gyro_x_speed - KalmanX.bias;  // 纯净的、去除了温漂的角速度
+    int Upright_pwm = Upright_Control(fused_angle, pure_gyro_x_speed, target_angle_from_speed);
+    
     /*=================== 转向环控制 ===================*/
     int Turn_pwm = Turn_Control(turn_cmd, gyro_z_speed);
 

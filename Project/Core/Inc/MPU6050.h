@@ -88,6 +88,18 @@ extern volatile float fused_angle;
 extern float gyro_x_speed;
 extern float gyro_z_speed;
 
+/*================== 卡尔曼滤波 ==================*/
+typedef struct {
+    float Q_angle;   // 过程噪声的协方差（加速度计信任度，越小越信任）
+    float Q_gyro;    // 过程噪声的协方差（陀螺仪漂移信任度）
+    float R_angle;   // 测量噪声的协方差（测量噪声，越大表示越不信任加速度计）
+    float angle;     // 滤波后的角度
+    float bias;      // 陀螺仪漂移（零偏）
+    float P[2][2];   // 误差协方差矩阵
+} Kalman_t;
+
+extern Kalman_t KalmanX;
+
 /*================== 函数声明 ==================*/
 
 uint8_t MPU6050_WriteByte(uint8_t reg_addr, uint8_t write_byte);
@@ -98,9 +110,7 @@ uint8_t MPU6050_Init(void);
 uint8_t MPU6050_Get_Gyro(short *gx, short *gy, short *gz);
 uint8_t MPU6050_Get_Accel(short *ax, short *ay, short *az);
 void MPU6050_Get_AccelAngle(void);
-void MPU6050_Get_GyroAngle(float dt);
 void MPU6050_Calibrate_Gyro(void);
-void MPU6050_Get_FusedAngle(float dt);
 void MPU6050_get_FusedAngle_Optimized(float dt);
 
 #endif
